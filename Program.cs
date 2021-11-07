@@ -20,7 +20,8 @@ namespace BOFTeamScanner
                 @"(?<=<td id=""comment""  title="").[\D\W\S]*?(?="">)",
                 @"(?<=<td id=""insert_time"" >).*?(?=</td>)",
                 @"(?<=<td id=""update_time"" >).*?(?=</td>)",
-                @"(?<=<td id=""musnum"" ><a href=""kprof.cgi\?mode=search\;search_musnum=).*?(?="">)");
+                @"(?<=<td id=""musnum"" ><a href=""kprof.cgi\?mode=search\;search_musnum=).*?(?="">)",
+                @"(?<=<td id="""" ><span class=""detailcheck""><a href="").*?(?="">)");
             var bofTeamInfos = new List<BofTeamInfo>();
             var i = 0;
             while (matches.TeamNameMatch.Success)
@@ -32,7 +33,8 @@ namespace BOFTeamScanner
                     matches.CommentMatch.ToString(),
                     matches.InsertTimeMatch.ToString(),
                     matches.UpdateTimeMatch.ToString(),
-                    matches.SongAmountMatch.ToString());
+                    matches.SongAmountMatch.ToString(), 
+                    matches.TeamLinkMatch.ToString());
                 matches = matches.Next(matches);
                 bofTeamInfos.Add(bofTeamInfo);
             }
@@ -46,8 +48,12 @@ namespace BOFTeamScanner
                                   $"团队人数（MemberCount）：{teamInfo.MemberCount}\n" +
                                   $"团队留言（Comment）：{teamInfo.Comment}\n" +
                                   $"加入时间（InsertTime）：{teamInfo.InsertTime}\n" +
-                                  $"更改日期（UpdateTime）：{teamInfo.UpdateTime}\n");
+                                  $"更改日期（UpdateTime）：{teamInfo.UpdateTime}\n" +
+                                  $"队伍链接（TeamLink）：https://manbow.nothing.sh/event/page/bofxvii/teamlist21/{ teamInfo.TeamLink }\n");
             }
+
+            Console.WriteLine(i);
+
         }
         
         public static string HttpGet(string url)
@@ -116,7 +122,9 @@ namespace BOFTeamScanner
 
         public readonly string SongAmount;
 
-        public BofTeamInfo(string teamName,string teamMembers,string leaderName,string memberCount,string comment,string insertTime,string updateTime,string songAmount)
+        public readonly string TeamLink;
+
+        public BofTeamInfo(string teamName,string teamMembers,string leaderName,string memberCount,string comment,string insertTime,string updateTime,string songAmount,string teamLink)
         {
             TeamName = teamName;
             TeamMembers = teamMembers;
@@ -126,6 +134,7 @@ namespace BOFTeamScanner
             InsertTime = insertTime;
             UpdateTime = updateTime;
             SongAmount = songAmount;
+            TeamLink = teamLink;
         }
     }
 
@@ -139,8 +148,9 @@ namespace BOFTeamScanner
         public Match InsertTimeMatch;
         public Match UpdateTimeMatch;
         public Match SongAmountMatch;
+        public Match TeamLinkMatch;
 
-        public Matches(string htmlRawText,string teamNameMatchRule,string teamMembersMatchRule,string leaderNameMatchRules,string memberCountMatchRules,string commentMatchRules,string insertTimeMatchRules,string updateTimeMatchRules,string songAmountMatchRules)
+        public Matches(string htmlRawText,string teamNameMatchRule,string teamMembersMatchRule,string leaderNameMatchRules,string memberCountMatchRules,string commentMatchRules,string insertTimeMatchRules,string updateTimeMatchRules,string songAmountMatchRules,string teamLinkMatchRules)
         {
             TeamNameMatch = Regex.Match(htmlRawText,teamNameMatchRule);
             TeamMembersMatch = Regex.Match(htmlRawText, teamMembersMatchRule);
@@ -150,6 +160,7 @@ namespace BOFTeamScanner
             InsertTimeMatch = Regex.Match(htmlRawText, insertTimeMatchRules);
             UpdateTimeMatch = Regex.Match(htmlRawText, updateTimeMatchRules);
             SongAmountMatch = Regex.Match(htmlRawText, songAmountMatchRules);
+            TeamLinkMatch = Regex.Match(htmlRawText,teamLinkMatchRules);
         }
 
         public Matches Next(Matches matches)
@@ -163,6 +174,7 @@ namespace BOFTeamScanner
             matches.TeamMembersMatch = matches.TeamMembersMatch.NextMatch();
             matches.TeamNameMatch = matches.TeamNameMatch.NextMatch();
             matches.UpdateTimeMatch = matches.UpdateTimeMatch.NextMatch();
+            matches.TeamLinkMatch = matches.TeamLinkMatch.NextMatch();
             return matches;
         }
     }
